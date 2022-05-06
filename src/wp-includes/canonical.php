@@ -74,18 +74,26 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( false === $original ) {
 		return;
 	}
+	
+	$user_home = parse_url( home_url() );
+
+	// Notice fixing.
+	if ( ! isset( $original['scheme'] ) ) {
+		$original['scheme'] = is_ssl() ? 'https' : 'http';
+	}
+	if ( ! isset( $original['host'] ) ) {
+		$original['host'] = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : ! empty( $user_home['host'] ) ? $user_home['host'] : '';
+	}
+	if ( ! isset( $original['path'] ) ) {
+		$original['path'] = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	}
+	if ( ! isset( $original['query'] ) ) {
+		$original['query'] = '';
+	}
 
 	$redirect     = $original;
 	$redirect_url = false;
 	$redirect_obj = false;
-
-	// Notice fixing.
-	if ( ! isset( $redirect['path'] ) ) {
-		$redirect['path'] = '';
-	}
-	if ( ! isset( $redirect['query'] ) ) {
-		$redirect['query'] = '';
-	}
 
 	/*
 	 * If the original URL ended with non-breaking spaces, they were almost
@@ -567,9 +575,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if ( $redirect_url ) {
 		$redirect = parse_url( $redirect_url );
 	}
-
-	// www.example.com vs. example.com
-	$user_home = parse_url( home_url() );
 
 	if ( ! empty( $user_home['host'] ) ) {
 		$redirect['host'] = $user_home['host'];
